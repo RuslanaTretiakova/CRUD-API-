@@ -1,21 +1,19 @@
 import Fastify from "fastify";
-import { productsRoutes } from "./routes/products.js";
+import { productRoutes } from "./routes/products.js";
 
-export function buildApp() {
-  const fastify = Fastify({
-    logger: true
+export const buildApp = () => {
+  const app = Fastify();
+
+  app.register(productRoutes);
+
+  app.setNotFoundHandler((_, reply) => {
+    reply.status(404).send({ message: "Route not found" });
   });
 
-  fastify.register(productsRoutes, { prefix: "/api" });
-
-  fastify.setNotFoundHandler((req, reply) => {
-    reply.code(404).send({ message: `Route ${req.method} ${req.url} not found` });
+  app.setErrorHandler((error, _, reply) => {
+    console.error(error);
+    reply.status(500).send({ message: "Internal Server Error" });
   });
 
-  fastify.setErrorHandler((error, _req, reply) => {
-    fastify.log.error(error);
-    reply.code(500).send({ message: "Internal server error" });
-  });
-
-  return fastify;
-}
+  return app;
+};
